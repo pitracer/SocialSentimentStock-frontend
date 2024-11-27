@@ -1,0 +1,10 @@
+
+streamlit
+pandas
+fastapi
+pytz
+uvicorn
+matplotlib
+seaborn
+numpy
+yfinance
