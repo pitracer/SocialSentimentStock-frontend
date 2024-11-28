@@ -3,6 +3,8 @@ import pandas as pd
 import sys
 import os
 import requests
+import plotly.graph_objects as go
+
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
@@ -42,6 +44,10 @@ if ticker and start_date and end_date and interval:
                       'interval' : interval}
             data = requests.get(url,params).json()
 
+            sentiment_url = 'https://socialsentimentstock-438782600472.europe-west1.run.app/sentiment_data?'
+
+            sentiment = requests.get(sentiment_url,params).json()
+            st.write(sentiment)
 
             # Display result or error
             if isinstance(data, str):  # If the function returns an error message
@@ -49,19 +55,54 @@ if ticker and start_date and end_date and interval:
             else:
                 # Ensure 'Date' is a datetime index
                 data = pd.DataFrame(data)
-                data['Date'] = pd.to_datetime(data['Date'], utc=True)  # Explicitly set UTC to avoid timezone warnings
-                data.set_index('Date', inplace=True)
-            #     # Resample the data to end of each month and pick the last closing price
-                monthly_data = data['Close'].resample('M').last()
+                # sentiment = pd.DataFrame(sentiment)
+                data.index = pd.to_datetime(data.index)
+                # sentiment.index = pd.to_datetime(data.index)
 
-            #     # Create a new DataFrame for Streamlit
-                chart_data = pd.DataFrame({
-                    'Month-Year': monthly_data.index.strftime('%Y-%m'),  # Format as Month-Year
-                    'Close': monthly_data.values
-                })
+                interval_dict = {'1m':'m',
+                                 '2m':'2m',
+                                 '5m':'5m',
+                                 '30m':'30m',
+                                 '1h':'h',
+                                 '1d':'D',
+                                 '1wk':'7D',
+                                 '1mo':'M',
+                                 '3mo':'3M'}
 
-            #     # Set 'Month-Year' as the index
-                chart_data.set_index('Month-Year', inplace=True)
+                # Resample the data to end of each month and pick the last closing price
+                data = data['Close'].resample(interval_dict[interval]).last()
+                st.write(sentiment)
+                # # Create Plotly figure
+                # fig = go.Figure()
 
-            #     # Plot the line chart
-                st.line_chart(chart_data)
+                # # Add stock line plot
+                # fig.add_trace(go.Scatter(
+                #     x=data.index,
+                #     y=data.values,
+                #     mode='lines',
+                #     name='Stock Price',
+                #     line=dict(color='blue'),
+                #     yaxis='y1'
+                # ))
+
+                # # Add sentiment bar plot
+                # fig.add_trace(go.Bar(
+                #     x=sentiment.index,
+                #     y=sentiment.values,
+                #     name='Sentiment',
+                #     marker_color=['green' if val > 0 else 'red' for val in sentiment.values],
+                #     opacity=0.7,
+                #     yaxis='y2'
+                # ))
+
+                # # Update layout for dual axes
+                # fig.update_layout(
+                #     title=f"{ticker} Stock Price and Sentiment",
+                #     xaxis=dict(title='Date'),
+                #     yaxis=dict(title='Stock Price', side='left'),
+                #     yaxis2=dict(title='Sentiment', side='right', overlaying='y', showgrid=False),
+                #     legend=dict(x=0, y=1)
+                # )
+
+                # # Display the chart
+                # st.plotly_chart(fig)

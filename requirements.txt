@@ -8,3 +8,4 @@ matplotlib
 seaborn
 numpy
 yfinance
+plotly
