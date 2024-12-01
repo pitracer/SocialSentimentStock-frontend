@@ -48,8 +48,9 @@ if ticker and start_date and end_date and interval:
 
             sentiment = requests.get(sentiment_url,params).json()
             sentiment = pd.DataFrame(sentiment)
+            sentiment.index = pd.to_datetime(sentiment.index)
             st.write(sentiment)
-            # sentiment.index = pd.to_datetime(sentiment.index)
+
 
             # Display result or error
             if isinstance(data, str):  # If the function returns an error message
