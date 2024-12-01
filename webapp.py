@@ -51,6 +51,7 @@ if ticker and start_date and end_date and interval:
 
             sentiment = requests.get(sentiment_url,params_sentiment).json()
             sentiment = pd.DataFrame(sentiment)
+            st.write(sentiment)
             sentiment['post_date'] = pd.to_datetime(sentiment['post_date'])
             sentiment.set_index('post_date', inplace=True)
 
@@ -62,7 +63,6 @@ if ticker and start_date and end_date and interval:
             else:
                 # Ensure 'Date' is a datetime index
                 data = pd.DataFrame(data)
-                # sentiment = pd.DataFrame(sentiment)
                 data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)  # Handle mixed time zones
                 data.set_index('Date', inplace=True)
 
