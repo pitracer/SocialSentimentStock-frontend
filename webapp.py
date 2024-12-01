@@ -72,6 +72,7 @@ if ticker and start_date and end_date and interval:
 
                 # Resample the data to end of each month and pick the last closing price
                 data = data['Close'].resample(interval_dict[interval]).last()
+                sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
 
                 # st.write(data)
                 # st.write(sentiment)
