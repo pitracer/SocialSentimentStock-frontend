@@ -75,39 +75,38 @@ if ticker and start_date and end_date and interval:
                 # Resample the data to end of each month and pick the last closing price
                 data = data['Close'].resample(interval_dict[interval]).last()
                 sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
-                st.write(sentiment)
 
-                # # Create Plotly figure
-                # fig = go.Figure()
+                # Create Plotly figure
+                fig = go.Figure()
 
-                # # Add stock line plot
-                # fig.add_trace(go.Scatter(
-                #     x=data.index,
-                #     y=data.values,
-                #     mode='lines',
-                #     name='Stock Price',
-                #     line=dict(color='blue'),
-                #     yaxis='y1'
-                # ))
+                # Add stock line plot
+                fig.add_trace(go.Scatter(
+                    x=data.index,
+                    y=data.values,
+                    mode='lines',
+                    name='Stock Price',
+                    line=dict(color='blue'),
+                    yaxis='y1'
+                ))
 
-                # # Add sentiment bar plot
-                # fig.add_trace(go.Bar(
-                #     x=sentiment.index,
-                #     y=sentiment.values,
-                #     name='Sentiment',
-                #     marker_color=['green' if val > 0 else 'red' for val in sentiment.values],
-                #     opacity=0.7,
-                #     yaxis='y2'
-                # ))
+                # Add sentiment bar plot
+                fig.add_trace(go.Bar(
+                    x=sentiment.index,
+                    y=sentiment.values,
+                    name='Sentiment',
+                    marker_color=['green' if val > 0 else 'red' for val in sentiment.values],
+                    opacity=0.7,
+                    yaxis='y2'
+                ))
 
-                # # Update layout for dual axes
-                # fig.update_layout(
-                #     title=f"{ticker} Stock Price and Sentiment",
-                #     xaxis=dict(title='Date'),
-                #     yaxis=dict(title='Stock Price', side='left'),
-                #     yaxis2=dict(title='Sentiment', side='right', overlaying='y', showgrid=False),
-                #     legend=dict(x=0, y=1)
-                # )
+                # Update layout for dual axes
+                fig.update_layout(
+                    title=f"{ticker} Stock Price and Sentiment",
+                    xaxis=dict(title='Date'),
+                    yaxis=dict(title='Stock Price', side='left'),
+                    yaxis2=dict(title='Sentiment', side='right', overlaying='y', showgrid=False),
+                    legend=dict(x=0, y=1)
+                )
 
-                # # Display the chart
-                # st.plotly_chart(fig)
+                # Display the chart
+                st.plotly_chart(fig)
