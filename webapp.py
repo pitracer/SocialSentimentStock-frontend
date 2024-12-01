@@ -52,6 +52,7 @@ if ticker and start_date and end_date and interval:
             sentiment.set_index('post_date', inplace=True)
 
 
+
             # Display result or error
             if isinstance(data, str):  # If the function returns an error message
                 st.error(data)
@@ -59,9 +60,8 @@ if ticker and start_date and end_date and interval:
                 # Ensure 'Date' is a datetime index
                 data = pd.DataFrame(data)
                 # sentiment = pd.DataFrame(sentiment)
-                data['Date'] = pd.to_datetime(data['Date'])
+                data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)  # Handle mixed time zones
                 data.set_index('Date', inplace=True)
-                st.write(data)
 
                 interval_dict = {'1m':'m',
                                  '2m':'2m',
@@ -74,8 +74,8 @@ if ticker and start_date and end_date and interval:
                                  '3mo':'3M'}
 
                 if not data.empty and not sentiment.empty:
-                    data = data['Close'].resample(interval_dict[interval]).last().dropna()
-                    sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean().dropna()
+                    data = data['Close'].resample(interval_dict[interval]).last()
+                    sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
                 else:
                     st.error("No data available for the specified ticker or date range.")
                     st.stop()
