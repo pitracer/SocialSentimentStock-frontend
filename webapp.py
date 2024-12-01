@@ -58,6 +58,7 @@ if ticker and start_date and end_date and interval:
             else:
                 # Ensure 'Date' is a datetime index
                 data = pd.DataFrame(data)
+                st.write(data)
                 # sentiment = pd.DataFrame(sentiment)
                 data.index = pd.to_datetime(data.index)
                 # sentiment.index = pd.to_datetime(data.index)
