@@ -113,3 +113,5 @@ if ticker and start_date and end_date and interval:
 
                 # Display the chart
                 st.plotly_chart(fig)
+                st.write(data)
+                st.write(sentiment)
