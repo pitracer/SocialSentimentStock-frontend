@@ -72,9 +72,12 @@ if ticker and start_date and end_date and interval:
                                  '1mo':'M',
                                  '3mo':'3M'}
 
-                # Resample the data to end of each month and pick the last closing price
-                data = data['Close'].resample(interval_dict[interval]).last()
-                sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
+                if not data.empty and not sentiment.empty:
+                    data = data['Close'].resample(interval_dict[interval]).last().dropna()
+                    sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean().dropna()
+                else:
+                    st.error("No data available for the specified ticker or date range.")
+                    st.stop()
 
                 # Create Plotly figure
                 fig = go.Figure()
