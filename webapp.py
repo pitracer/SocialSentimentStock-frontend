@@ -60,8 +60,8 @@ if ticker and start_date and end_date and interval:
                 data = pd.DataFrame(data)
                 st.write(data)
                 # sentiment = pd.DataFrame(sentiment)
-                data.index = pd.to_datetime(data.index)
-                # sentiment.index = pd.to_datetime(data.index)
+                data['Date'] = pd.to_datetime(data['Date'])
+                data.set_index('Date', inplace=True)
 
                 interval_dict = {'1m':'m',
                                  '2m':'2m',
