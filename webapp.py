@@ -44,9 +44,12 @@ if ticker and start_date and end_date and interval:
                       'interval' : interval}
             data = requests.get(url,params).json()
 
+            params_sentiment = {'ticker_symbol' : ticker,
+                      'start_date' : start_date,
+                      'end_date' : end_date}
             sentiment_url = 'https://socialsentimentstock-438782600472.europe-west1.run.app/sentiment_data?'
 
-            sentiment = requests.get(sentiment_url,params).json()
+            sentiment = requests.get(sentiment_url,params_sentiment).json()
             sentiment = pd.DataFrame(sentiment)
             sentiment['post_date'] = pd.to_datetime(sentiment['post_date'])
             sentiment.set_index('post_date', inplace=True)
