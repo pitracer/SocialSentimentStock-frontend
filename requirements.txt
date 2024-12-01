@@ -9,3 +9,5 @@ seaborn
 numpy
 yfinance
 plotly
+google-cloud-bigquery
+
