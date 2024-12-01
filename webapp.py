@@ -51,69 +51,70 @@ if ticker and start_date and end_date and interval:
 
             sentiment = requests.get(sentiment_url,params_sentiment).json()
             sentiment = pd.DataFrame(sentiment)
-            sentiment['post_date'] = pd.to_datetime(sentiment['post_date'])
-            sentiment.set_index('post_date', inplace=True)
+            st.write(sentiment)
+            # sentiment['post_date'] = pd.to_datetime(sentiment['post_date'])
+            # sentiment.set_index('post_date', inplace=True)
 
 
 
-            # Display result or error
-            if isinstance(data, str):  # If the function returns an error message
-                st.error(data)
-            else:
-                # Ensure 'Date' is a datetime index
-                data = pd.DataFrame(data)
-                # sentiment = pd.DataFrame(sentiment)
-                data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)  # Handle mixed time zones
-                data.set_index('Date', inplace=True)
+            # # Display result or error
+            # if isinstance(data, str):  # If the function returns an error message
+            #     st.error(data)
+            # else:
+            #     # Ensure 'Date' is a datetime index
+            #     data = pd.DataFrame(data)
+            #     # sentiment = pd.DataFrame(sentiment)
+            #     data['Date'] = pd.to_datetime(data['Date'], errors='coerce', utc=True)  # Handle mixed time zones
+            #     data.set_index('Date', inplace=True)
 
-                interval_dict = {'1m':'m',
-                                 '2m':'2m',
-                                 '5m':'5m',
-                                 '30m':'30m',
-                                 '1h':'h',
-                                 '1d':'D',
-                                 '1wk':'7D',
-                                 '1mo':'M',
-                                 '3mo':'3M'}
+            #     interval_dict = {'1m':'m',
+            #                      '2m':'2m',
+            #                      '5m':'5m',
+            #                      '30m':'30m',
+            #                      '1h':'h',
+            #                      '1d':'D',
+            #                      '1wk':'7D',
+            #                      '1mo':'M',
+            #                      '3mo':'3M'}
 
-                if not data.empty and not sentiment.empty:
-                    data = data['Close'].resample(interval_dict[interval]).last()
-                    sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
-                else:
-                    st.error("No data available for the specified ticker or date range.")
-                    st.stop()
+            #     if not data.empty and not sentiment.empty:
+            #         data = data['Close'].resample(interval_dict[interval]).last()
+            #         sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
+            #     else:
+            #         st.error("No data available for the specified ticker or date range.")
+            #         st.stop()
 
-                # Create Plotly figure
-                fig = go.Figure()
+            #     # Create Plotly figure
+            #     fig = go.Figure()
 
-                # Add stock line plot
-                fig.add_trace(go.Scatter(
-                    x=data.index,
-                    y=data.values,
-                    mode='lines',
-                    name='Stock Price',
-                    line=dict(color='blue'),
-                    yaxis='y1'
-                ))
+            #     # Add stock line plot
+            #     fig.add_trace(go.Scatter(
+            #         x=data.index,
+            #         y=data.values,
+            #         mode='lines',
+            #         name='Stock Price',
+            #         line=dict(color='blue'),
+            #         yaxis='y1'
+            #     ))
 
-                # Add sentiment bar plot
-                fig.add_trace(go.Bar(
-                    x=sentiment.index,
-                    y=sentiment.values,
-                    name='Sentiment',
-                    marker_color=['green' if val > 0 else 'red' for val in sentiment.values],
-                    opacity=0.7,
-                    yaxis='y2'
-                ))
+            #     # Add sentiment bar plot
+            #     fig.add_trace(go.Bar(
+            #         x=sentiment.index,
+            #         y=sentiment.values,
+            #         name='Sentiment',
+            #         marker_color=['green' if val > 0 else 'red' for val in sentiment.values],
+            #         opacity=0.7,
+            #         yaxis='y2'
+            #     ))
 
-                # Update layout for dual axes
-                fig.update_layout(
-                    title=f"{ticker} Stock Price and Sentiment",
-                    xaxis=dict(title='Date'),
-                    yaxis=dict(title='Stock Price', side='left'),
-                    yaxis2=dict(title='Sentiment', side='right', overlaying='y', showgrid=False),
-                    legend=dict(x=0, y=1)
-                )
+            #     # Update layout for dual axes
+            #     fig.update_layout(
+            #         title=f"{ticker} Stock Price and Sentiment",
+            #         xaxis=dict(title='Date'),
+            #         yaxis=dict(title='Stock Price', side='left'),
+            #         yaxis2=dict(title='Sentiment', side='right', overlaying='y', showgrid=False),
+            #         legend=dict(x=0, y=1)
+            #     )
 
-                # Display the chart
-                st.plotly_chart(fig)
+            #     # Display the chart
+            #     st.plotly_chart(fig)
