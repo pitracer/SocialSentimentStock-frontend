@@ -58,10 +58,10 @@ if ticker and start_date and end_date and interval:
             else:
                 # Ensure 'Date' is a datetime index
                 data = pd.DataFrame(data)
-                st.write(data)
                 # sentiment = pd.DataFrame(sentiment)
                 data['Date'] = pd.to_datetime(data['Date'])
                 data.set_index('Date', inplace=True)
+                st.write(data)
 
                 interval_dict = {'1m':'m',
                                  '2m':'2m',
@@ -114,5 +114,3 @@ if ticker and start_date and end_date and interval:
 
                 # Display the chart
                 st.plotly_chart(fig)
-                st.write(data)
-                st.write(sentiment)
