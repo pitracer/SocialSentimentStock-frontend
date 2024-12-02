@@ -4,6 +4,7 @@ import sys
 import os
 import requests
 import plotly.graph_objects as go
+import plotly.express as px
 
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -51,8 +52,8 @@ if ticker and start_date and end_date and interval:
 
             sentiment = requests.get(sentiment_url,params_sentiment).json()
             sentiment = pd.DataFrame(sentiment)
-            sentiment['post_date'] = pd.to_datetime(sentiment['post_date'])
-            sentiment.set_index('post_date', inplace=True)
+            sentiment['Date'] = pd.to_datetime(sentiment['post_date'])
+            sentiment.set_index('Date', inplace=True)
 
 
 
@@ -76,8 +77,11 @@ if ticker and start_date and end_date and interval:
                                  '3mo':'3M'}
 
                 if not data.empty and not sentiment.empty:
+
+
                     data = data['Close'].resample(interval_dict[interval]).last()
                     sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
+
                 else:
                     st.error("No data available for the specified ticker or date range.")
                     st.stop()
@@ -115,4 +119,57 @@ if ticker and start_date and end_date and interval:
                 )
 
                 # Display the chart
+
                 st.plotly_chart(fig)
+
+
+
+                # Calculate percentage change manually
+                data = pd.DataFrame(data)
+                data['Percent Change'] = data['Close'].diff() / data['Close'].shift(1) * 100
+
+
+                # Align sentiment data with stock data
+                sentiment = pd.DataFrame(sentiment)
+#////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+
+
+                # Merge datasets
+                merged_data = pd.merge(data, sentiment, on='Date', how='inner')
+                merged_data = merged_data.reset_index()
+
+
+                # Create Scatter Plot
+                scatter_fig = px.scatter(
+                    merged_data,
+                    x='numerical_sentiment',
+                    y='Percent Change',
+                    title=f"Sentiment vs. Stock Price Change ({ticker})",
+                    labels={'numerical_sentiment': 'Sentiment Score', 'Percent Change': 'Stock Price Change (%)'},
+                    hover_data=['Date'],
+                    color='numerical_sentiment',
+                    color_continuous_scale=['red', 'yellow', 'green'],
+                    size=[10] * len(merged_data)
+                )
+
+                # Update the layout to include a grid and ensure 0,0 is visible
+                scatter_fig.update_layout(
+                    xaxis=dict(
+                        title='Sentiment Score',
+                        zeroline=True,  # Add a zero line
+                        zerolinecolor='black',  # Zero line color
+                        showgrid=True,  # Show grid lines
+                        gridcolor='lightgray'  # Grid line color
+                    ),
+                    yaxis=dict(
+                        title='Stock Price Change (%)',
+                        zeroline=True,  # Add a zero line
+                        zerolinecolor='black',  # Zero line color
+                        showgrid=True,  # Show grid lines
+                        gridcolor='lightgray'  # Grid line color
+                    ),
+                )
+
+                # Display scatter plot
+                st.plotly_chart(scatter_fig)
