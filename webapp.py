@@ -4,6 +4,7 @@ import sys
 import os
 import requests
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import plotly.express as px
 from datetime import datetime
 
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 st.title("SocialStockSentiment")
 
-st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling current and historical sentiment, on a given company for a time window of your choosing, stock price, ongoing themes into one location')
+st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling historical sentiment, on a given top 5 NASDAQ company for a time window of your choosing.')
 
 # Ticker input
 ticker = st.selectbox(
@@ -25,9 +26,10 @@ start_date = st.text_input('Please select the start date ("YYYY-MM-DD")').strip(
 end_date = st.text_input('Please select the end date ("YYYY-MM-DD")').strip()      # Remove whitespace
 
 # Interval Input
-interval = st.text_input(
-    'Would you like your data to be daily ("1d"), weekly ("1wk"), monthly ("1mo"), quarterly ("3mo")?'
-).strip()
+interval = st.selectbox(
+    'Would you like your data to be daily ("1d"), weekly ("1wk"), monthly ("1mo"), quarterly ("3mo")?',
+    options=['1d', '1wk', '1mo', '3mo']
+)
 
 # Check that all inputs are provided
 if ticker and start_date and end_date and interval:
@@ -191,3 +193,80 @@ if ticker and start_date and end_date and interval:
                 st.plotly_chart(scatter_fig)
 
 #<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
+
+
+
+                # Calculate percent changes
+                merged_data['Sentiment Change'] = merged_data['numerical_sentiment'].pct_change() * 100
+                merged_data['Price Change'] = merged_data['Close'].pct_change() * 100
+
+                # Melt data for side-by-side bar chart
+                bar_data = merged_data.melt(
+                    id_vars='Date',
+                    value_vars=['Sentiment Change', 'Price Change'],
+                    var_name='Metric',
+                    value_name='Change Percentage'
+                )
+
+                # Create figure with secondary y-axis
+                fig = make_subplots(
+                    rows=1, cols=1,
+                    shared_xaxes=True,
+                    vertical_spacing=0.3,
+                    subplot_titles=[f"{ticker} Sentiment vs Stock Price Change"],
+                    specs=[[{'secondary_y': True}]]
+                )
+
+                # Adjusting the bar positions to prevent overlap
+                bar_width = 0.4  # Adjust bar width for spacing
+                sentiment_bar_offset = -bar_width / 2  # Offset for sentiment bars
+                price_bar_offset = bar_width / 2  # Offset for price bars
+
+                # Add Sentiment Change bars (first y-axis)
+                fig.add_trace(
+                    go.Bar(
+                        x=bar_data[bar_data['Metric'] == 'Sentiment Change']['Date'],
+                        y=bar_data[bar_data['Metric'] == 'Sentiment Change']['Change Percentage'],
+                        name='Sentiment Change',
+                        marker=dict(color='green'),
+                        width=bar_width,  # Control the width of the bars
+                        offsetgroup=1  # Group bars together for the same time values
+                    ),
+                    secondary_y=False
+                )
+
+                # Add Price Change bars (second y-axis)
+                fig.add_trace(
+                    go.Bar(
+                        x=bar_data[bar_data['Metric'] == 'Price Change']['Date'],
+                        y=bar_data[bar_data['Metric'] == 'Price Change']['Change Percentage'],
+                        name='Price Change',
+                        marker=dict(color='blue'),
+                        width=bar_width,  # Control the width of the bars
+                        offsetgroup=2  # Group bars together for the same time values
+                    ),
+                    secondary_y=True
+                )
+
+                # Update layout with two y-axes and separate bars
+                fig.update_layout(
+                    title=f"{ticker} Sentiment vs Stock Price Change",
+                    xaxis_title='Date',
+                    yaxis=dict(
+                        title='Sentiment Change (%)',
+                        side='left',
+                        range=[-1000, 1000]  # Adjust the range as per your data scale
+                    ),
+                    yaxis2=dict(
+                        title='Price Change (%)',
+                        side='right',
+                        overlaying='y',
+                        range=[-10, 10]  # Adjust the range as per your data scale
+                    ),
+                    barmode='group',  # 'group' mode places bars side by side
+                    bargap=0.2,  # Increase the gap between bars
+                    legend=dict(x=0, y=1),
+                )
+
+                # Display the chart
+                st.plotly_chart(fig)
