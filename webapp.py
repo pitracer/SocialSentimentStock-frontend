@@ -5,6 +5,7 @@ import os
 import requests
 import plotly.graph_objects as go
 import plotly.express as px
+from datetime import datetime
 
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -13,7 +14,11 @@ st.title("SocialStockSentiment")
 
 st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling current and historical sentiment, on a given company for a time window of your choosing, stock price, ongoing themes into one location')
 
-ticker = st.text_input('Please insert stock ticker (without $)').strip().upper()  # Remove whitespace and ensure uppercase
+# Ticker input
+ticker = st.selectbox(
+    'Please select a stock ticker:',
+    options=['AAPL', 'TSLA', 'GOOG', 'AMZN', 'MSFT']
+)
 
 # Date Inputs
 start_date = st.text_input('Please select the start date ("YYYY-MM-DD")').strip()  # Remove whitespace
@@ -55,6 +60,8 @@ if ticker and start_date and end_date and interval:
             sentiment['Date'] = pd.to_datetime(sentiment['post_date'])
             sentiment.set_index('Date', inplace=True)
 
+            # sentiment['']
+
 
 
             # Display result or error
@@ -82,9 +89,13 @@ if ticker and start_date and end_date and interval:
                     data = data['Close'].resample(interval_dict[interval]).last()
                     sentiment = sentiment['numerical_sentiment'].resample(interval_dict[interval]).mean()
 
+
+
                 else:
                     st.error("No data available for the specified ticker or date range.")
                     st.stop()
+
+#<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
 
                 # Create Plotly figure
                 fig = go.Figure()
@@ -130,16 +141,22 @@ if ticker and start_date and end_date and interval:
 
 
                 # Align sentiment data with stock data
+
                 sentiment = pd.DataFrame(sentiment)
-#////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-
+#<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
 
                 # Merge datasets
-                merged_data = pd.merge(data, sentiment, on='Date', how='inner')
-                merged_data = merged_data.reset_index()
 
-
+                data = data.reset_index()
+                sentiment=sentiment.reset_index()
+                if interval == '1wk':
+                    sentiment['Date'] = sentiment['Date'] - pd.to_timedelta(sentiment['Date'].dt.dayofweek, unit='d')
+                else:
+                    sentiment['Date'] = sentiment['Date']
+                merged_data = data.merge(sentiment, how='inner')
+                # Add table of data so user can see
+                st.write(merged_data)
                 # Create Scatter Plot
                 scatter_fig = px.scatter(
                     merged_data,
@@ -148,11 +165,10 @@ if ticker and start_date and end_date and interval:
                     title=f"Sentiment vs. Stock Price Change ({ticker})",
                     labels={'numerical_sentiment': 'Sentiment Score', 'Percent Change': 'Stock Price Change (%)'},
                     hover_data=['Date'],
-                    color='numerical_sentiment',
+                    color='Percent Change',
                     color_continuous_scale=['red', 'yellow', 'green'],
                     size=[10] * len(merged_data)
                 )
-
                 # Update the layout to include a grid and ensure 0,0 is visible
                 scatter_fig.update_layout(
                     xaxis=dict(
@@ -173,3 +189,5 @@ if ticker and start_date and end_date and interval:
 
                 # Display scatter plot
                 st.plotly_chart(scatter_fig)
+
+#<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
