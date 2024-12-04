@@ -181,7 +181,7 @@ if st.session_state['data_fetched']:
     )
     st.plotly_chart(scatter_fig)
 
-    # Calculate percentage changes for sentiment and price
+# Calculate percentage changes for sentiment and price
     merged_data['Sentiment Change'] = merged_data['numerical_sentiment'].pct_change() * 100
     merged_data['Price Change'] = merged_data['Close'].pct_change() * 100
 
@@ -193,57 +193,61 @@ if st.session_state['data_fetched']:
         value_name='Change Percentage'
     )
 
+    # Add a column for conditional colors
+    def assign_color(row):
+        if row['Metric'] == 'Sentiment Change':
+            return 'red' if row['Change Percentage'] < 0 else 'green'
+        elif row['Metric'] == 'Price Change':
+            return 'blue' if row['Change Percentage'] < 0 else 'lightblue'
+
+    bar_data['Color'] = bar_data.apply(assign_color, axis=1)
+
     # Side-by-Side Bar Chart: Sentiment Change vs Price Change
     fig = make_subplots(
         rows=1, cols=1,
         shared_xaxes=True,
         vertical_spacing=0.3,
         subplot_titles=[f"{ticker} Sentiment vs Stock Price Change"],
-        specs=[[{'secondary_y': True}]]
+        specs=[[{'secondary_y': False}]]  # Disable secondary y-axis to group bars properly
     )
 
-    # Add Sentiment Change bars (first y-axis)
+    # Add Sentiment Change bars
+    sentiment_data = bar_data[bar_data['Metric'] == 'Sentiment Change']
     fig.add_trace(
         go.Bar(
-            x=bar_data[bar_data['Metric'] == 'Sentiment Change']['Date'],
-            y=bar_data[bar_data['Metric'] == 'Sentiment Change']['Change Percentage'],
+            x=sentiment_data['Date'],
+            y=sentiment_data['Change Percentage'],
             name='Sentiment Change',
-            marker=dict(color='green')
-        ),
-        secondary_y=False
+            marker=dict(color=sentiment_data['Color'])
+        )
     )
 
-    # Add Price Change bars (second y-axis)
+    # Add Price Change bars
+    price_data = bar_data[bar_data['Metric'] == 'Price Change']
     fig.add_trace(
         go.Bar(
-            x=bar_data[bar_data['Metric'] == 'Price Change']['Date'],
-            y=bar_data[bar_data['Metric'] == 'Price Change']['Change Percentage'],
+            x=price_data['Date'],
+            y=price_data['Change Percentage'],
             name='Price Change',
-            marker=dict(color='blue')
-        ),
-        secondary_y=True
+            marker=dict(color=price_data['Color'])
+        )
     )
 
-    # Update layout for side-by-side bars
+    # Update layout for non-overlapping grouped bars
     fig.update_layout(
         title=f"{ticker} Sentiment vs Stock Price Change",
         xaxis_title='Date',
         yaxis=dict(
-            title='Sentiment Change (%)',
-            side='left',
-            range=[-100, 100]  # Adjust the range as per your data scale
+            title='Change Percentage (%)',
+            range=[-100, 100]  # Adjust based on your data scale
         ),
-        yaxis2=dict(
-            title='Price Change (%)',
-            side='right',
-            overlaying='y',
-            range=[-10, 10]  # Adjust the range as per your data scale
-        ),
-        barmode='group',  # 'group' mode places bars side by side
-        bargap=0.2,  # Increase the gap between bars
+        barmode='group',  # Ensures bars are grouped side-by-side
+        bargap=0.2,  # Adjust gap between groups
         legend=dict(x=0, y=1),
     )
+
     st.plotly_chart(fig)
+
 
 
 
@@ -335,5 +339,3 @@ if st.session_state['data_fetched']:
             st.plotly_chart(fig)
     else:
         st.warning("Category data (Real_Label) is not available.")
-
-
