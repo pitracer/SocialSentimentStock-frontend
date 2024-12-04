@@ -6,14 +6,14 @@ import requests
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, date
 
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 st.title("SocialStockSentiment")
 
-st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling historical sentiment, on a given top 5 NASDAQ company for a time window of your choosing.')
+st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling historical sentiment, on the top 5 NASDAQ companies, for a time window of your choosing.')
 
 # Ticker input
 ticker = st.selectbox(
@@ -21,9 +21,23 @@ ticker = st.selectbox(
     options=['AAPL', 'TSLA', 'GOOG', 'AMZN', 'MSFT']
 )
 
-# Date Inputs
-start_date = st.text_input('Please select the start date ("YYYY-MM-DD")').strip()  # Remove whitespace
-end_date = st.text_input('Please select the end date ("YYYY-MM-DD")').strip()      # Remove whitespace
+# Specify the range for the calendar
+start_date = st.date_input(
+    "Please select the start date",
+    value=date(2015, 1, 1),
+    min_value=date(2015, 1, 1),
+    max_value=date(2019, 12, 31),
+)
+
+end_date = st.date_input(
+    "Please select the end date",
+    value=date(2019, 12, 31),
+    min_value=date(2015, 1, 1),
+    max_value=date(2019, 12, 31),
+)
+
+if start_date > end_date:
+    st.error("The start date must be earlier than or equal to the end date.")
 
 # Interval Input
 interval = st.selectbox(
@@ -31,17 +45,20 @@ interval = st.selectbox(
     options=['1d', '1wk', '1mo', '3mo']
 )
 
-# Check that all inputs are provided
+# Assuming `ticker`, `interval`, `start_date`, and `end_date` are provided earlier in the code
 if ticker and start_date and end_date and interval:
     if st.button(f'Pull data for {ticker}'):
-        # Validate date format
-        try:
-            from datetime import datetime
-            start_date = datetime.strptime(start_date, "%Y-%m-%d").strftime("%Y-%m-%d")
-            end_date = datetime.strptime(end_date, "%Y-%m-%d").strftime("%Y-%m-%d")
-        except ValueError:
-            st.error("Invalid date format. Please use YYYY-MM-DD.")
-            start_date, end_date = None, None
+        # Validate that start_date is earlier than or equal to end_date
+        if start_date > end_date:
+            st.error("The start date must be earlier than or equal to the end date.")
+        else:
+            # Convert dates to strings in YYYY-MM-DD format for further use (if needed)
+            start_date_str = start_date.strftime("%Y-%m-%d")
+            end_date_str = end_date.strftime("%Y-%m-%d")
+
+            # Perform actions with the validated inputs
+            st.success(f"Pulling data for {ticker} from {start_date_str} to {end_date_str} with interval {interval}.")
+
 
         if start_date and end_date:
             # Call the function
@@ -61,10 +78,6 @@ if ticker and start_date and end_date and interval:
             sentiment = pd.DataFrame(sentiment)
             sentiment['Date'] = pd.to_datetime(sentiment['post_date'])
             sentiment.set_index('Date', inplace=True)
-
-            # sentiment['']
-
-
 
             # Display result or error
             if isinstance(data, str):  # If the function returns an error message
@@ -134,9 +147,7 @@ if ticker and start_date and end_date and interval:
                 # Display the chart
 
                 st.plotly_chart(fig)
-
-
-
+#<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
                 # Calculate percentage change manually
                 data = pd.DataFrame(data)
                 data['Percent Change'] = data['Close'].diff() / data['Close'].shift(1) * 100
@@ -146,17 +157,31 @@ if ticker and start_date and end_date and interval:
 
                 sentiment = pd.DataFrame(sentiment)
 
-#<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
+
 
                 # Merge datasets
+                # st.write(data)
+                # st.write(sentiment)
 
                 data = data.reset_index()
                 sentiment=sentiment.reset_index()
-                if interval == '1wk':
-                    sentiment['Date'] = sentiment['Date'] - pd.to_timedelta(sentiment['Date'].dt.dayofweek, unit='d')
+                if interval == '1wk' and sentiment['Date'][0] != data['Date'][0]:
+                    min_sentiment_date = sentiment['Date'].min()
+                    min_data_date = data['Date'].min()
+
+                    # Calculate the difference between the minimum dates
+                    date_difference = min_data_date - min_sentiment_date
+
+                    # Adjust sentiment['Date'] by adding the difference
+                    sentiment['Date'] = sentiment['Date'] + date_difference
                 else:
                     sentiment['Date'] = sentiment['Date']
+
+                # st.write(data)
+                # st.write(sentiment)
+
                 merged_data = data.merge(sentiment, how='inner')
+
                 # Add table of data so user can see
                 st.write(merged_data)
                 # Create Scatter Plot
@@ -218,7 +243,7 @@ if ticker and start_date and end_date and interval:
                 )
 
                 # Adjusting the bar positions to prevent overlap
-                bar_width = 0.4  # Adjust bar width for spacing
+                bar_width = 4  # Adjust bar width for spacing
                 sentiment_bar_offset = -bar_width / 2  # Offset for sentiment bars
                 price_bar_offset = bar_width / 2  # Offset for price bars
 
@@ -241,7 +266,7 @@ if ticker and start_date and end_date and interval:
                         x=bar_data[bar_data['Metric'] == 'Price Change']['Date'],
                         y=bar_data[bar_data['Metric'] == 'Price Change']['Change Percentage'],
                         name='Price Change',
-                        marker=dict(color='blue'),
+                        marker=dict(color='blue '),
                         width=bar_width,  # Control the width of the bars
                         offsetgroup=2  # Group bars together for the same time values
                     ),
