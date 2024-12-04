@@ -259,14 +259,24 @@ if st.session_state['data_fetched']:
             filtered_sentiment = sentiment_df[sentiment_df['Real_Label'] == selected_category]
             category_counts = filtered_sentiment.resample(interval_dict[interval]).size()
 
-            # Combine with stock data
             category_data = category_counts.to_frame(name='Tweet Counts')
+
+            # Merge the dataframes using an outer join (keep all dates)
             combined_data = stock_resampled.merge(
                 category_data,
                 left_index=True,
                 right_index=True,
                 how='outer'
-            ).fillna(0)  # Fill missing values with 0 for tweet counts
+            )
+
+            # Perform linear interpolation to fill missing stock prices
+            combined_data['Close'] = combined_data['Close'].interpolate(method='linear')
+
+            # Fill missing tweet counts with 0
+            combined_data = combined_data.fillna(0)
+
+            # Now, `combined_data` will have interpolated stock prices in a straight line
+
 
 
             # Plot the combined data
@@ -327,167 +337,3 @@ if st.session_state['data_fetched']:
         st.warning("Category data (Real_Label) is not available.")
 
 
-    # if 'Real_Label' in sentiment_df.columns:
-    #     categories = sentiment_df['Real_Label'].unique()
-    #     selected_category = st.selectbox("Filter by Tweet Category:", options=categories)
-
-    #     if selected_category:
-    #         filtered_sentiment = sentiment_df[sentiment_df['Real_Label'] == selected_category]
-    #         category_counts = filtered_sentiment.resample(interval_dict[interval]).size()
-
-    #         st.write(f"Number of tweets in category '{selected_category}' per {interval}:")
-    #         st.bar_chart(category_counts)
-    # else:
-    #     st.warning("Category data (Real_Label) is not available.")
-
-
-
-
-# #-------------------------------
-#                 # Calculate percentage change manually
-#         data = pd.DataFrame(data)
-#         data['Percent Change'] = data['Close'].diff() / data['Close'].shift(1) * 100
-
-
-#         # Align sentiment data with stock data
-
-#         sentiment = pd.DataFrame(sentiment)
-
-
-
-#         # Merge datasets
-#         # st.write(data)
-#         # st.write(sentiment)
-
-#         data = data.reset_index()
-#         sentiment=sentiment.reset_index()
-#         if interval == '1wk' and sentiment['Date'][0] != data['Date'][0]:
-#             min_sentiment_date = sentiment['Date'].min()
-#             min_data_date = data['Date'].min()
-
-#             # Calculate the difference between the minimum dates
-#             date_difference = min_data_date - min_sentiment_date
-
-#             # Adjust sentiment['Date'] by adding the difference
-#             sentiment['Date'] = sentiment['Date'] + date_difference
-#         else:
-#             sentiment['Date'] = sentiment['Date']
-
-#         # st.write(data)
-#         # st.write(sentiment)
-
-#         merged_data = data.merge(sentiment, how='inner')
-
-#         # Add table of data so user can see
-#         st.write(merged_data)
-#         # Create Scatter Plot
-#         scatter_fig = px.scatter(
-#             merged_data,
-#             x='numerical_sentiment',
-#             y='Percent Change',
-#             title=f"Sentiment vs. Stock Price Change ({ticker})",
-#             labels={'numerical_sentiment': 'Sentiment Score', 'Percent Change': 'Stock Price Change (%)'},
-#             hover_data=['Date'],
-#             color='Percent Change',
-#             color_continuous_scale=['red', 'yellow', 'green'],
-#             size=[10] * len(merged_data)
-#         )
-#         # Update the layout to include a grid and ensure 0,0 is visible
-#         scatter_fig.update_layout(
-#             xaxis=dict(
-#                 title='Sentiment Score',
-#                 zeroline=True,  # Add a zero line
-#                 zerolinecolor='black',  # Zero line color
-#                 showgrid=True,  # Show grid lines
-#                 gridcolor='lightgray'  # Grid line color
-#             ),
-#             yaxis=dict(
-#                 title='Stock Price Change (%)',
-#                 zeroline=True,  # Add a zero line
-#                 zerolinecolor='black',  # Zero line color
-#                 showgrid=True,  # Show grid lines
-#                 gridcolor='lightgray'  # Grid line color
-#             ),
-#         )
-
-#         # Display scatter plot
-#         st.plotly_chart(scatter_fig)
-
-# #<<<<<<////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\>>>>>>
-
-
-
-#                 # Calculate percent changes
-#                 merged_data['Sentiment Change'] = merged_data['numerical_sentiment'].pct_change() * 100
-#                 merged_data['Price Change'] = merged_data['Close'].pct_change() * 100
-
-#                 # Melt data for side-by-side bar chart
-#                 bar_data = merged_data.melt(
-#                     id_vars='Date',
-#                     value_vars=['Sentiment Change', 'Price Change'],
-#                     var_name='Metric',
-#                     value_name='Change Percentage'
-#                 )
-
-#                 # Create figure with secondary y-axis
-#                 fig = make_subplots(
-#                     rows=1, cols=1,
-#                     shared_xaxes=True,
-#                     vertical_spacing=0.3,
-#                     subplot_titles=[f"{ticker} Sentiment vs Stock Price Change"],
-#                     specs=[[{'secondary_y': True}]]
-#                 )
-
-#                 # Adjusting the bar positions to prevent overlap
-#                 bar_width = 4  # Adjust bar width for spacing
-#                 sentiment_bar_offset = -bar_width / 2  # Offset for sentiment bars
-#                 price_bar_offset = bar_width / 2  # Offset for price bars
-
-#                 # Add Sentiment Change bars (first y-axis)
-#                 fig.add_trace(
-#                     go.Bar(
-#                         x=bar_data[bar_data['Metric'] == 'Sentiment Change']['Date'],
-#                         y=bar_data[bar_data['Metric'] == 'Sentiment Change']['Change Percentage'],
-#                         name='Sentiment Change',
-#                         marker=dict(color='green'),
-#                         width=bar_width,  # Control the width of the bars
-#                         offsetgroup=1  # Group bars together for the same time values
-#                     ),
-#                     secondary_y=False
-#                 )
-
-#                 # Add Price Change bars (second y-axis)
-#                 fig.add_trace(
-#                     go.Bar(
-#                         x=bar_data[bar_data['Metric'] == 'Price Change']['Date'],
-#                         y=bar_data[bar_data['Metric'] == 'Price Change']['Change Percentage'],
-#                         name='Price Change',
-#                         marker=dict(color='blue '),
-#                         width=bar_width,  # Control the width of the bars
-#                         offsetgroup=2  # Group bars together for the same time values
-#                     ),
-#                     secondary_y=True
-#                 )
-
-#                 # Update layout with two y-axes and separate bars
-#                 fig.update_layout(
-#                     title=f"{ticker} Sentiment vs Stock Price Change",
-#                     xaxis_title='Date',
-#                     yaxis=dict(
-#                         title='Sentiment Change (%)',
-#                         side='left',
-#                         range=[-1000, 1000]  # Adjust the range as per your data scale
-#                     ),
-#                     yaxis2=dict(
-#                         title='Price Change (%)',
-#                         side='right',
-#                         overlaying='y',
-#                         range=[-10, 10]  # Adjust the range as per your data scale
-#                     ),
-#                     barmode='group',  # 'group' mode places bars side by side
-#                     bargap=0.2,  # Increase the gap between bars
-#                     legend=dict(x=0, y=1),
-#                 )
-
-#                 # Display the chart
-#                 st.plotly_chart(fig)
