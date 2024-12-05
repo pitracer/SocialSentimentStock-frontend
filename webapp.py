@@ -274,7 +274,16 @@ if st.session_state['data_fetched']:
         ),
         barmode='group',  # Bars are still grouped but line plot is overlaid
         bargap=0.2,       # Adjust gap between bars
-        legend=dict(x=0, y=1),
+        legend=dict(
+                    x=0.5,  # Horizontal position (0 = left, 1 = right)
+                    y=-0.3,  # Vertical position (negative values place it below the chart)
+                    xanchor='center',  # Center align horizontally
+                    yanchor='top',  # Align to the top vertically
+                    orientation='h',  # Horizontal layout
+                    bgcolor='rgba(255,255,255,0.5)',  # Semi-transparent background
+                    bordercolor='gray',  # Optional: Add border
+                    borderwidth=1  # Optional: Border thickness
+                )
     )
 
     # Render the chart in Streamlit
@@ -365,7 +374,16 @@ if st.session_state['data_fetched']:
                     overlaying='y',
                     showgrid=False
                 ),
-                legend=dict(x=0, y=1),
+                legend=dict(
+                    x=0.5,  # Horizontal position (0 = left, 1 = right)
+                    y=-0.3,  # Vertical position (negative values place it below the chart)
+                    xanchor='center',  # Center align horizontally
+                    yanchor='top',  # Align to the top vertically
+                    orientation='h',  # Horizontal layout
+                    bgcolor='rgba(255,255,255,0.5)',  # Semi-transparent background
+                    bordercolor='gray',  # Optional: Add border
+                    borderwidth=1  # Optional: Border thickness
+                ),
                 barmode='overlay'  # Ensure bars are slightly transparent and overlaid
             )
 
