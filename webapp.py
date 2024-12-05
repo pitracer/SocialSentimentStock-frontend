@@ -274,7 +274,7 @@ if st.session_state['data_fetched']:
             )
 
             # Perform linear interpolation to fill missing stock prices
-            combined_data['Close'] = combined_data['Close'].interpolate(method='linear')
+            combined_data['Close'] = combined_data['Close'].interpolate(method='linear',limit_direction = 'both')
 
             # Fill missing tweet counts with 0
             combined_data = combined_data.fillna(0)
