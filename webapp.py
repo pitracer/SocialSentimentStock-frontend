@@ -217,22 +217,22 @@ if st.session_state['data_fetched']:
     # Add a column for conditional colors
     def assign_color(row):
         if row['Metric'] == 'Sentiment Change':
-            return 'red' if row['Change Percentage'] < 0 else 'green'
+            return 'red' if row['Change Percentage'] < 0 else 'lightgreen'
         elif row['Metric'] == 'Price Change':
             return 'blue' if row['Change Percentage'] < 0 else 'lightblue'
 
     bar_data['Color'] = bar_data.apply(assign_color, axis=1)
 
-    # Side-by-Side Bar Chart: Sentiment Change vs Price Change
+    # Side-by-Side Line Plot for Sentiment Change vs Price Change
     fig = make_subplots(
         rows=1, cols=1,
         shared_xaxes=True,
         vertical_spacing=0.3,
         subplot_titles=[f"{ticker} Sentiment vs Stock Price Change"],
-        specs=[[{'secondary_y': False}]]  # Disable secondary y-axis to group bars properly
+        specs=[[{'secondary_y': True}]]  # Enable secondary y-axis
     )
 
-    # Add Sentiment Change bars
+    # Add Sentiment Change bars (Primary Y-Axis)
     sentiment_data = bar_data[bar_data['Metric'] == 'Sentiment Change']
     fig.add_trace(
         go.Bar(
@@ -240,33 +240,44 @@ if st.session_state['data_fetched']:
             y=sentiment_data['Change Percentage'],
             name='Sentiment Change',
             marker=dict(color=sentiment_data['Color'])
-        )
+        ),
+        secondary_y=False  # Attach to the primary y-axis
     )
 
-    # Add Price Change bars
+    # Add Price Change line plot (Secondary Y-Axis)
     price_data = bar_data[bar_data['Metric'] == 'Price Change']
     fig.add_trace(
-        go.Bar(
+        go.Scatter(
             x=price_data['Date'],
             y=price_data['Change Percentage'],
-            name='Price Change',
-            marker=dict(color=price_data['Color'])
-        )
+            name='Stock Price Change',
+            mode='lines+markers',  # Display as a line with markers
+            line=dict(color='purple'),  # Choose a color for the line
+            marker=dict(color='purple')  # Choose a color for the markers
+        ),
+        secondary_y=True  # Attach to the secondary y-axis
     )
 
-    # Update layout for non-overlapping grouped bars
+    # Update layout for dual axes
     fig.update_layout(
         title=f"{ticker} Sentiment vs Stock Price Change",
         xaxis_title='Date',
         yaxis=dict(
-            title='Change Percentage (%)',
-            range=[-100, 100]  # Adjust based on your data scale
+            title='Sentiment Change (%)',
+            range=[-100, 100]  # Adjust based on sentiment data scale
         ),
-        barmode='group',  # Ensures bars are grouped side-by-side
-        bargap=0.2,  # Adjust gap between groups
+        yaxis2=dict(
+            title='Stock Price Change (%)',
+            overlaying='y',  # Share the same x-axis
+            side='right',    # Position the axis on the right
+            range=[-10, 10]  # Adjust based on price data scale
+        ),
+        barmode='group',  # Bars are still grouped but line plot is overlaid
+        bargap=0.2,       # Adjust gap between bars
         legend=dict(x=0, y=1),
     )
 
+    # Render the chart in Streamlit
     st.plotly_chart(fig)
 
 
