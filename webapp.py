@@ -12,8 +12,10 @@ from datetime import datetime, date
 
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-st.title("SocialStockSentiment")
-st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling historical sentiment, on the top 5 NASDAQ companies, for a time window of your choosing.')
+st.title("SocialSentimentStock")
+st.subheader('SocialSentimentStock is designed to simplify your stock research by pulling historical sentiment, on the top 5 NASDAQ companies, for a time window of your choosing.')
+
+tweet_url = 'https://socialsentimentstock-438782600472.europe-west1.run.app/get_tweet?'
 
 
 # Initialize session state
@@ -353,7 +355,7 @@ if st.session_state['data_fetched']:
                     x=combined_data.index,
                     y=combined_data['Tweet Counts'],
                     name=f"Tweet Counts ({selected_category})",
-                    marker_color='green',
+                    marker_color='grey',
                     opacity=0.6,
                     yaxis='y2'
                 ),
@@ -393,3 +395,8 @@ if st.session_state['data_fetched']:
             st.info("Please select a category to display the graph showing volume of tweets in the selected category (and stock price) over time.")
     else:
         st.warning("Category data (Real_Label) is not available.")
+params = {'ticker_symbol': ticker, 'start_date': start_date, 'end_date': end_date}
+if st.button('Select random tweets'):
+    tweet_data = requests.get(tweet_url, params=params).json()
+    tweet_df = pd.DataFrame(tweet_data)
+    st.write(tweet_df)
