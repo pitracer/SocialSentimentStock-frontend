@@ -32,7 +32,7 @@ start_date = st.date_input(
 )
 end_date = st.date_input(
     "Please select the end date",
-    value=date(2019, 12, 31),
+    value=date(2015, 1, 31),
     min_value=date(2015, 1, 1),
     max_value=date(2019, 12, 31),
 )
@@ -76,6 +76,7 @@ if ticker and start_date and end_date and interval:
             st.session_state['sentiment_df'] = sentiment_df
             st.session_state['data_fetched'] = True
 
+
         # Access data from session state
         stock_df = st.session_state['stock_df']
         sentiment_df = st.session_state['sentiment_df']
@@ -117,6 +118,9 @@ if ticker and start_date and end_date and interval:
 
 
 
+
+
+
 #----------------------------------
 # After fetching and processing the stock and sentiment data in session state
 if st.session_state['data_fetched']:
@@ -147,9 +151,12 @@ if st.session_state['data_fetched']:
         how='inner'
     )
 
-    # Add table for merged data
-    st.write("Merged Data (Stock and Sentiment):")
-    st.write(merged_data)
+    # Add an option to show the table
+    if st.checkbox("Show me the numbers", key='show_table'):
+        # Add table for merged data
+        st.write("Merged Data (Stock and Sentiment):")
+        st.write(merged_data)
+
 
     # Scatter Plot: Sentiment vs Stock Price Change
     scatter_fig = px.scatter(
@@ -255,10 +262,12 @@ if st.session_state['data_fetched']:
     # Category selection and filtering
 # Category selection and filtering with stock data
     if 'Real_Label' in sentiment_df.columns:
-        categories = sentiment_df['Real_Label'].unique()
+        categories = [category for category in sentiment_df['Real_Label'].unique() if category != 'Other.']
+        categories.insert(0, 'Select a category')
+        # categories = sentiment_df['Real_Label'].unique()
         selected_category = st.selectbox("Filter by Tweet Category:", options=categories, key='category_selection')
 
-        if selected_category:
+        if selected_category and selected_category != 'Select a category':
             # Filter sentiment data for the selected category
             filtered_sentiment = sentiment_df[sentiment_df['Real_Label'] == selected_category]
             category_counts = filtered_sentiment.resample(interval_dict[interval]).size()
@@ -337,5 +346,7 @@ if st.session_state['data_fetched']:
 
             # Display the combined chart
             st.plotly_chart(fig)
+        else:
+            st.info("Please select a category to display the graph showing volume of tweets in the selected category (and stock price) over time.")
     else:
         st.warning("Category data (Real_Label) is not available.")
