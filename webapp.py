@@ -9,9 +9,12 @@ import plotly.express as px
 from datetime import datetime, date
 
 
+
+
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 st.title("SocialStockSentiment")
 st.subheader('SocialStockSentiment is designed to simplify your stock research by pulling historical sentiment, on the top 5 NASDAQ companies, for a time window of your choosing.')
+
 
 # Initialize session state
 if 'data_fetched' not in st.session_state:
@@ -75,6 +78,17 @@ if ticker and start_date and end_date and interval:
             st.session_state['stock_df'] = stock_df
             st.session_state['sentiment_df'] = sentiment_df
             st.session_state['data_fetched'] = True
+            st.write("Click the button below to refresh the page.")
+
+        def reset_session_state():
+            # Clear all session state variables
+            for key in st.session_state.keys():
+                del st.session_state[key]
+
+        # Refresh button at the top of the page
+        if st.button("Refresh Page"):
+            reset_session_state()  # Clear session state variables
+            st.stop()  # Prevent further execution of the script to simulate refresh
 
 
         # Access data from session state
